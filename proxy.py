@@ -1,18 +1,15 @@
-import typing
-
+import cv2
+import dlib
 import mitmproxy.addonmanager
 import mitmproxy.connections
 import mitmproxy.http
 import mitmproxy.log
+import mitmproxy.proxy.protocol
 import mitmproxy.tcp
 import mitmproxy.websocket
-import mitmproxy.proxy.protocol
 from mitmproxy.script import concurrent
 
-import cv2
-import dlib
-
-from mustache import mustachify, loadStreamAsRGBA
+from mustache import loadStreamAsRGBA, mustachify
 
 mustache = cv2.imread("mustache.png", cv2.IMREAD_UNCHANGED)
 detector = dlib.get_frontal_face_detector()
@@ -32,7 +29,5 @@ def response(flow: mitmproxy.http.HTTPFlow):
             image_mustaches = image
         print("Intercepting")
         flow.response = mitmproxy.http.HTTPResponse.make(
-            200, image_mustaches, {
-                "Content-Type": "image/jpeg"
-            }
+            200, image_mustaches, {"Content-Type": "image/jpeg"}
         )

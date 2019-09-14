@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import io
 import math
 import sys
 from collections import OrderedDict
@@ -20,20 +19,16 @@ FACIAL_LANDMARKS_IDXS = OrderedDict(
 def loadAsRGBA(path: str):
     img = cv2.imread(path)
     b_channel, g_channel, r_channel = cv2.split(img)
-    alpha_channel = (
-        np.ones(b_channel.shape, dtype=b_channel.dtype) * 255
-    )
+    alpha_channel = np.ones(b_channel.shape, dtype=b_channel.dtype) * 255
     return cv2.merge((b_channel, g_channel, r_channel, alpha_channel))
 
 
-def loadStreamAsRGBA(stream: str):
+def loadStreamAsRGBA(stream):
     data = np.fromstring(stream, np.uint8)
     img = cv2.imdecode(data, cv2.IMREAD_COLOR)
     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     b_channel, g_channel, r_channel = cv2.split(img)
-    alpha_channel = (
-        np.ones(b_channel.shape, dtype=b_channel.dtype) * 255
-    )
+    alpha_channel = np.ones(b_channel.shape, dtype=b_channel.dtype) * 255
     return cv2.merge((b_channel, g_channel, r_channel, alpha_channel))
 
 
@@ -135,12 +130,15 @@ def addMustaches(img, gray, rects, predictor, mustache, path: Path):
         mustacheResized = resizeMustache(mustache, (w, h))
         mustacheRotated = rotateBound(mustacheResized, -angle)
         mustachePil = cvRGBAToPillow(mustacheRotated)
-        (left, top) = (avgX - mustacheRotated.shape[1] // 2, avgY - mustacheRotated.shape[0] // 2)
+        (left, top) = (
+            avgX - mustacheRotated.shape[1] // 2,
+            avgY - mustacheRotated.shape[0] // 2,
+        )
         imPil.paste(mustachePil, (left, top), mustachePil)
         # cv2.imwrite(f'debug-{path.name}.jpg', img)
     if path is not None:
         imPil.convert("RGB").save(Path("output") / path.name)
-    imgCv = np.array(imPil.convert('RGB'))
+    imgCv = np.array(imPil.convert("RGB"))
     return cv2.imencode(".jpg", imgCv)[1]
 
 
