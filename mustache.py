@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import io
 import math
 import sys
 from collections import OrderedDict
@@ -18,6 +19,17 @@ FACIAL_LANDMARKS_IDXS = OrderedDict(
 
 def loadAsRGBA(path: str):
     img = cv2.imread(path)
+    b_channel, g_channel, r_channel = cv2.split(img)
+    alpha_channel = (
+        np.ones(b_channel.shape, dtype=b_channel.dtype) * 255
+    )
+    return cv2.merge((b_channel, g_channel, r_channel, alpha_channel))
+
+
+def loadStreamAsRGBA(stream: str):
+    data = np.fromstring(stream, np.uint8)
+    img = cv2.imdecode(data, cv2.IMREAD_COLOR)
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     b_channel, g_channel, r_channel = cv2.split(img)
     alpha_channel = (
         np.ones(b_channel.shape, dtype=b_channel.dtype) * 255
@@ -128,20 +140,26 @@ def addMustaches(img, gray, rects, predictor, mustache, path: Path):
         (left, top) = (avgX - mustacheRotated.shape[1] // 2, avgY - mustacheRotated.shape[0] // 2)
         imPil.paste(mustachePil, (left, top), mustachePil)
         # cv2.imwrite(f'debug-{path.name}.jpg', img)
+    if path is not None:
+        imPil.convert("RGB").save(Path("output") / path.name)
+    imgCv = np.array(imPil.convert('RGB'))
+    return cv2.imencode(".jpg", imgCv)[1]
 
-    imPil.convert("RGB").save(Path("output") / path.name)
 
-
-def run(path: Path, mustache):
-    img = loadAsRGBA(str(path))
-    detector = dlib.get_frontal_face_detector()
-    predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+def mustachify(img, path: Path, mustache, detector, predictor):
     gray = cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
     rects = detector(gray, 1)
-    addMustaches(img, gray, rects, predictor, mustache, path)
+    if len(rects) == 0:
+        return img
+    result = addMustaches(img, gray, rects, predictor, mustache, path)
+    return result.tostring()
 
 
 if __name__ == "__main__":
+    detector = dlib.get_frontal_face_detector()
+    predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
     mustache = cv2.imread("mustache.png", cv2.IMREAD_UNCHANGED)
     for path in tqdm(sys.argv[1:]):
-        run(Path(path), mustache)
+        path = Path(path)
+        img = loadAsRGBA(str(path))
+        mustachify(img, path, mustache, detector, predictor)
