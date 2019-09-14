@@ -75,7 +75,6 @@ def centerBetweenNoseAndMouth(img, shape):
     angle = 0
     if vectorX != 0 and vectorY != 0:
         angle = 90 - np.rad2deg(math.atan2(vectorY, vectorX))
-        print(angle)
     noseBottom = findMinMaxOfShape("nose", shape)[3]
     (mouthLeft, mouthRight, _, mouthTop) = findMinMaxOfShape("mouth", shape)
     return (
@@ -126,7 +125,7 @@ def rotateBound(image, angle):
 
 def addMustaches(img, gray, rects, predictor, mustache, path: Path):
     imPil = cvRGBAToPillow(img)
-    print(f"Found: {len(rects)} faces")
+    # print(f"Found: {len(rects)} faces")
     for (i, rect) in enumerate(rects):
         # debugFaceRect(rect, img)
         shape = predictor(gray, rect)
@@ -136,7 +135,6 @@ def addMustaches(img, gray, rects, predictor, mustache, path: Path):
         mustacheResized = resizeMustache(mustache, (w, h))
         mustacheRotated = rotateBound(mustacheResized, -angle)
         mustachePil = cvRGBAToPillow(mustacheRotated)
-        print(mustacheRotated.shape)
         (left, top) = (avgX - mustacheRotated.shape[1] // 2, avgY - mustacheRotated.shape[0] // 2)
         imPil.paste(mustachePil, (left, top), mustachePil)
         # cv2.imwrite(f'debug-{path.name}.jpg', img)
@@ -150,7 +148,7 @@ def mustachify(img, path: Path, mustache, detector, predictor):
     gray = cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
     rects = detector(gray, 1)
     if len(rects) == 0:
-        return img
+        return None
     result = addMustaches(img, gray, rects, predictor, mustache, path)
     return result.tostring()
 
