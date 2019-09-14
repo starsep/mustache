@@ -19,7 +19,7 @@ predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 @concurrent
 def response(flow: mitmproxy.http.HTTPFlow):
     headers = flow.response.headers
-    content_type = headers["Content-Type"]
+    content_type = headers.get("Content-Type", "")
     print(f"Content type: {content_type}")
     if content_type in ("image/jpeg", "image/png"):
         image = flow.response.data.content
