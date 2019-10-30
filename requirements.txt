@@ -24,7 +24,7 @@ mitmproxy==4.0.4
 numpy==1.17.2             # via opencv-python
 opencv-python==4.1.1.26
 passlib==1.7.1            # via mitmproxy
-pillow==6.1.0
+pillow==6.2.0
 pyasn1==0.4.7             # via ldap3, mitmproxy
 pycparser==2.19           # via cffi
 pyopenssl==18.0.0         # via mitmproxy
